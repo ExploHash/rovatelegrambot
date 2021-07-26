@@ -1,0 +1,32 @@
+service: rovatelegrambackend
+
+provider:
+  name: aws
+  runtime: nodejs14.x
+  stage: production
+  region: eu-west-1
+  memorySize: 128
+  logRetentionInDays: 7
+
+package:
+  excludeDevDependencies: false
+  individually: true
+  include:
+    - node_modules/**
+
+functions:
+  run:
+    timeout: 30
+    package: {include: [index.js]}
+    description: Checks date and runs
+    handler: index.handler
+    environment:
+      CHAT_ID: ${ssm:rovatelegrambot-chatid}
+      CHAT_BOTTOKEN: ${ssm:rovatelegrambot-bottoken}
+      POSTCODE: ${ssm:rovatelegrambot-postcode}
+      STREETNUMBER: ${ssm:rovatelegrambot-streetnumber}
+    events:
+      - schedule:
+          name: rovatelegrambot-runner
+          description: Runs the rova telegram bot
+          rate: cron(0 16 * * ? *)
